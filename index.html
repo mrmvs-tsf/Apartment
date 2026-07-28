@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thess Sabino-Francisco Apartments</title>
+  <title>TSF Apartments</title>
 
   <!-- Home Screen & Bookmark Icons -->
-  <link rel="favicon" sizes="180x180" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   
@@ -20,7 +20,7 @@
 
   <div class="max-w-4xl mx-auto space-y-6">
     
-        <!-- Header with Logo -->
+    <!-- Header with Logo -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
       <img src="logo.png" alt="Thess Sabino-Francisco Apartments" class="h-16 md:h-20 object-contain max-w-full">
       <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Meralco & Maynilad Lookup System</p>
@@ -30,7 +30,14 @@
     <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-lg font-semibold mb-4 text-slate-800">Automated Search</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Renter Name / Unit Search -->
+        <div>
+          <label for="nameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Renter Name / Unit</label>
+          <input type="text" id="nameInput" placeholder="Type Name or Unit..." 
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
+        </div>
+
         <!-- Meralco Search -->
         <div>
           <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Account / Meter #</label>
@@ -86,11 +93,12 @@
   </div>
 
   <script>
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    // GOOGLE APPS SCRIPT WEB APP URL:
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqLfiYSTVBrnyeBtvylGGxrIEzUVpTf_vJ244KGwsEXHWNhXvcyV3aWPlK5w-J4IVv/exec';
 
     let apartmentData = [];
 
+    const nameInput = document.getElementById('nameInput');
     const meralcoInput = document.getElementById('meralcoInput');
     const mayniladInput = document.getElementById('mayniladInput');
     const resultCard = document.getElementById('resultCard');
@@ -125,42 +133,56 @@
     }
 
     function performLookup(sourceField) {
+      const nVal = cleanVal(nameInput.value);
       const mVal = cleanVal(meralcoInput.value);
       const myVal = cleanVal(mayniladInput.value);
 
-      if (sourceField === 'meralco' && mVal) mayniladInput.value = '';
-      if (sourceField === 'maynilad' && myVal) meralcoInput.value = '';
+      // Clear inactive search inputs when typing
+      if (sourceField === 'name') {
+        meralcoInput.value = '';
+        mayniladInput.value = '';
+      } else if (sourceField === 'meralco') {
+        nameInput.value = '';
+        mayniladInput.value = '';
+      } else if (sourceField === 'maynilad') {
+        nameInput.value = '';
+        meralcoInput.value = '';
+      }
 
-      const searchVal = sourceField === 'meralco' ? mVal : myVal;
+      const activeVal = sourceField === 'name' ? nVal : (sourceField === 'meralco' ? mVal : myVal);
 
-      if (!searchVal) {
+      if (!activeVal) {
         resultCard.classList.add('hidden');
         renderTable(apartmentData);
         return;
       }
 
-      const match = apartmentData.find(row => {
+      const matches = apartmentData.filter(row => {
+        const rowRenter = cleanVal(row.renter);
         const rowMeralco = cleanVal(row.meralco);
         const rowMaynilad = cleanVal(row.maynilad);
         
-        if (sourceField === 'meralco') return rowMeralco.includes(searchVal);
-        if (sourceField === 'maynilad') return rowMaynilad.includes(searchVal);
+        if (sourceField === 'name') return rowRenter.includes(activeVal);
+        if (sourceField === 'meralco') return rowMeralco.includes(activeVal);
+        if (sourceField === 'maynilad') return rowMaynilad.includes(activeVal);
         return false;
       });
 
-      if (match) {
+      if (matches.length > 0) {
+        const match = matches[0];
         resultName.textContent = match.renter || 'Unknown Renter';
         resultMeralco.textContent = match.meralco || 'N/A';
         resultMaynilad.textContent = match.maynilad || 'N/A';
         resultCard.classList.remove('hidden');
 
-        renderTable([match]);
+        renderTable(matches);
       } else {
         resultCard.classList.add('hidden');
         renderTable([]);
       }
     }
 
+    nameInput.addEventListener('input', () => performLookup('name'));
     meralcoInput.addEventListener('input', () => performLookup('meralco'));
     mayniladInput.addEventListener('input', () => performLookup('maynilad'));
 
