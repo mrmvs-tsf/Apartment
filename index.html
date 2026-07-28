@@ -11,7 +11,7 @@
 
   <div class="max-w-4xl mx-auto space-y-6">
     
-            <!-- Header with Logo -->
+        <!-- Header with Logo -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
       <img src="logo.png" alt="Thess Sabino-Francisco Apartments" class="h-16 md:h-20 object-contain max-w-full">
       <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Meralco & Maynilad Lookup System</p>
@@ -77,17 +77,11 @@
   </div>
 
   <script>
-    // ------------------------------------------------------------------
-    // REPLACE THESE TWO VALUES WITH YOUR GOOGLE SHEET DETAILS:
-    // ------------------------------------------------------------------
-    const SPREADSHEET_ID = '1-0bztnmfWj_m99W1Y4ScWQn1ltLmz3Frw1pPggI3Hqw';
-    const SHEET_NAME = 'apartment';
-
-    // ------------------------------------------------------------------
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqLfiYSTVBrnyeBtvylGGxrIEzUVpTf_vJ244KGwsEXHWNhXvcyV3aWPlK5w-J4IVv/exec';
 
     let apartmentData = [];
 
-    // DOM Elements
     const meralcoInput = document.getElementById('meralcoInput');
     const mayniladInput = document.getElementById('mayniladInput');
     const resultCard = document.getElementById('resultCard');
@@ -97,43 +91,30 @@
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
-        // Fetch Live Data using Public CSV Export
+    // Fetch Live Data
     async function loadGoogleSheetData() {
-      const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
       try {
-        const response = await fetch(csvUrl);
-        if (!response.ok) throw new Error('Network error');
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const data = await response.json();
         
-        const text = await response.text();
-        const lines = text.split('\n');
-        
-        apartmentData = lines.slice(1).map(line => {
-          // Parse CSV columns
-          const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => 
-            cell.replace(/^"|"$/g, '').trim()
-          );
-          
-          return {
-            renter: cells[0] || '',
-            meralco: cells[1] || '',
-            maynilad: cells[2] || ''
-          };
-        }).filter(item => item.renter || item.meralco || item.maynilad);
+        // Skip header row (row 0)
+        apartmentData = data.slice(1).map(row => ({
+          renter: (row[0] || '').toString().trim(),
+          meralco: (row[1] || '').toString().trim(),
+          maynilad: (row[2] || '').toString().trim()
+        })).filter(item => item.renter || item.meralco || item.maynilad);
 
         renderTable(apartmentData);
       } catch (err) {
         console.error('Failed to load Google Sheet:', err);
-        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to load Google Sheet. Please check tab name spelling.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to connect to Google Sheet API.</td></tr>`;
       }
     }
 
-    // Clean strings for search matching
     function cleanVal(str) {
       return (str || '').toString().toLowerCase().replace(/[\s-]/g, '');
     }
 
-    // Search Lookup Handler
     function performLookup(sourceField) {
       const mVal = cleanVal(meralcoInput.value);
       const myVal = cleanVal(mayniladInput.value);
@@ -174,7 +155,6 @@
     meralcoInput.addEventListener('input', () => performLookup('meralco'));
     mayniladInput.addEventListener('input', () => performLookup('maynilad'));
 
-    // Render Data Table
     function renderTable(data) {
       recordCount.textContent = `${data.length} records`;
 
@@ -192,7 +172,6 @@
       `).join('');
     }
 
-    // Initialize on page load
     loadGoogleSheetData();
   </script>
 </body>
