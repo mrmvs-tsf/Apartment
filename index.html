@@ -97,32 +97,34 @@
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
-    // Fetch Live Data from Google Sheets
+        // Fetch Live Data using Public CSV Export
     async function loadGoogleSheetData() {
-      const gvizUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
       try {
-        const response = await fetch(gvizUrl);
-        const text = await response.text();
+        const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error('Network error');
         
-        // Parse Google's JSON payload
-        const jsonString = text.substring(47, text.length - 2);
-        const json = JSON.parse(jsonString);
-
-        const rows = json.table.rows;
-        apartmentData = rows.map(r => {
-          const c = r.c;
+        const text = await response.text();
+        const lines = text.split('\n');
+        
+        apartmentData = lines.slice(1).map(line => {
+          // Parse CSV columns
+          const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => 
+            cell.replace(/^"|"$/g, '').trim()
+          );
+          
           return {
-            renter: c[0] ? (c[0].v || '').toString().trim() : '',
-            meralco: c[1] ? (c[1].v || '').toString().trim() : '',
-            maynilad: c[2] ? (c[2].v || '').toString().trim() : ''
+            renter: cells[0] || '',
+            meralco: cells[1] || '',
+            maynilad: cells[2] || ''
           };
         }).filter(item => item.renter || item.meralco || item.maynilad);
 
         renderTable(apartmentData);
       } catch (err) {
         console.error('Failed to load Google Sheet:', err);
-        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to load Google Sheet. Please verify Spreadsheet ID and sharing settings.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to load Google Sheet. Please check tab name spelling.</td></tr>`;
       }
     }
 
