@@ -1,14 +1,11 @@
-Index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apartment Utility & Renter Lookup</title>
+  <title>Apartment Renter Lookup</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse CSV Reader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
 
@@ -17,35 +14,26 @@ Index.html
     <!-- Header -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
       <h1 class="text-2xl font-bold text-slate-900">Apartment Renter Lookup</h1>
-      <p class="text-sm text-slate-500 mt-1">Search tenant records by Meralco or Maynilad numbers</p>
+      <p class="text-sm text-slate-500 mt-1">Search tenant records instantly by Meralco or Maynilad numbers</p>
     </header>
-
-    <!-- CSV File Upload Section -->
-    <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <h2 class="text-lg font-semibold mb-3 text-slate-800">1. Load Your Dataset</h2>
-      <div class="flex flex-col sm:flex-row items-center gap-4">
-        <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"/>
-        <span id="fileStatus" class="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full whitespace-nowrap">No file loaded</span>
-      </div>
-    </section>
 
     <!-- Search Section -->
     <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <h2 class="text-lg font-semibold mb-4 text-slate-800">2. Automated Search</h2>
+      <h2 class="text-lg font-semibold mb-4 text-slate-800">Automated Search</h2>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Meralco Search -->
         <div>
           <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Account / Meter #</label>
-          <input type="text" id="meralcoInput" placeholder="e.g. 1234567890" disabled
-            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:bg-slate-100 disabled:cursor-not-allowed text-slate-900">
+          <input type="text" id="meralcoInput" placeholder="Type Meralco #..." 
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
 
         <!-- Maynilad Search -->
         <div>
           <label for="mayniladInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Account / Meter #</label>
-          <input type="text" id="mayniladInput" placeholder="e.g. 9876543210" disabled
-            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:bg-slate-100 disabled:cursor-not-allowed text-slate-900">
+          <input type="text" id="mayniladInput" placeholder="Type Maynilad #..." 
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
       </div>
     </section>
@@ -56,7 +44,6 @@ Index.html
       <div class="mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h3 id="resultName" class="text-2xl font-extrabold">--</h3>
-          <p id="resultUnit" class="text-blue-100 text-sm mt-0.5">--</p>
         </div>
         <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-lg text-xs space-y-1 border border-white/20">
           <p><strong>Meralco #:</strong> <span id="resultMeralco">--</span></p>
@@ -69,13 +56,15 @@ Index.html
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-semibold text-slate-800">All Apartment Records</h2>
-        <span id="recordCount" class="text-xs text-slate-500">0 records</span>
+        <span id="recordCount" class="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">0 records</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-semibold">
-            <tr id="tableHeader">
-              <th class="p-3">Upload your Apartment.csv file to view data</th>
+            <tr>
+              <th class="p-3">Renter / Unit</th>
+              <th class="p-3">Meralco Number</th>
+              <th class="p-3">Maynilad Number</th>
             </tr>
           </thead>
           <tbody id="tableBody" class="divide-y divide-slate-200">
@@ -87,60 +76,73 @@ Index.html
   </div>
 
   <script>
-    let apartmentData = [];
-    let headers = [];
+    // Embedded Data directly extracted from your Apartment.csv file
+    const apartmentData = [
+      {"renter": "Neneng Biyuda", "meralco": "383103301", "maynilad": "59441977"},
+      {"renter": "Danny", "meralco": "383103551", "maynilad": ""},
+      {"renter": "Rollie Bollus", "meralco": "602983126", "maynilad": "67442005"},
+      {"renter": "Annie Francisco", "meralco": "383104053", "maynilad": ""},
+      {"renter": "Nida Manatad", "meralco": "403420575", "maynilad": ""},
+      {"renter": "Racquel", "meralco": "383104394", "maynilad": ""},
+      {"renter": "Rose Lagumbayan", "meralco": "383104964", "maynilad": ""},
+      {"renter": "Uncle Diding", "meralco": "383103631", "maynilad": "59441959"},
+      {"renter": "Angelita Panes", "meralco": "383104133", "maynilad": ""},
+      {"renter": "Delia Damason", "meralco": "383104703", "maynilad": ""},
+      {"renter": "Susan Lagumbayan", "meralco": "383104884", "maynilad": ""},
+      {"renter": "Rowena datahan", "meralco": "383105386", "maynilad": ""},
+      {"renter": "Michael Marquez", "meralco": "3831055355", "maynilad": ""},
+      {"renter": "Annaliza Buentozin", "meralco": "383105796", "maynilad": ""},
+      {"renter": "Randy", "meralco": "383106378", "maynilad": ""},
+      {"renter": "Beth", "meralco": "383106868", "maynilad": ""},
+      {"renter": "Danny Espayos", "meralco": "383107441", "maynilad": "67442112"},
+      {"renter": "Melody", "meralco": "", "maynilad": ""},
+      {"renter": "Buddy Espayos", "meralco": "", "maynilad": ""},
+      {"renter": "Bunny Cayatano", "meralco": "383106948", "maynilad": "67442185"},
+      {"renter": "Aniceta Manatad", "meralco": "383106458", "maynilad": ""},
+      {"renter": "Tikay Cabe", "meralco": "383106527", "maynilad": "66722044"},
+      {"renter": "Tata / Jorell", "meralco": "", "maynilad": ""},
+      {"renter": "0092 A - Eddie", "meralco": "2103739572", "maynilad": "64852782"},
+      {"renter": "0092 B - Mang Lanie", "meralco": "1795651062", "maynilad": "64852773"},
+      {"renter": "0092 C - Balie", "meralco": "1907494184", "maynilad": "66722035"},
+      {"renter": "0092 D - Rey", "meralco": "1907544952", "maynilad": ""},
+      {"renter": "0092 E - Richie", "meralco": "1907545944", "maynilad": "66722053"},
+      {"renter": "0092 F - Nerlyn", "meralco": "1948883767", "maynilad": "67117839"},
+      {"renter": "0092 G - Loraine", "meralco": "1948885115", "maynilad": "67117875"},
+      {"renter": "0092 H - Honey", "meralco": "1948886368", "maynilad": "67117777"},
+      {"renter": "0092 I - Mary Grace Gonzaga", "meralco": "1948887646", "maynilad": "67117795"},
+      {"renter": "0092 J - Tisay", "meralco": "1948888899", "maynilad": "67117704"},
+      {"renter": "Unit 1 - Gina naig", "meralco": "2063282172", "maynilad": "68180269"},
+      {"renter": "Unit 2 - Reign", "meralco": "2063281189", "maynilad": "68180214"},
+      {"renter": "Unit 3 - Nay Eden", "meralco": "2063281555", "maynilad": "68180223"},
+      {"renter": "Unit 4 - Nay Elizabeth", "meralco": "2063275953", "maynilad": "68180278"},
+      {"renter": "Unit 5 - Delia Amigable", "meralco": "2063281715", "maynilad": "68180241"},
+      {"renter": "Unit 6 - Michael", "meralco": "2063282888", "maynilad": "68180330"},
+      {"renter": "Unit 7 - Elna", "meralco": "2063283164", "maynilad": "68180321"},
+      {"renter": "Unit 8 - Nimfa / Roda", "meralco": "2063283951", "maynilad": "68180303"},
+      {"renter": "Unit 9 - Rosario Odad", "meralco": "2063285068", "maynilad": "68180296"},
+      {"renter": "Unit 10 - Rommel Amador", "meralco": "2063285514", "maynilad": "68180287"},
+      {"renter": "ADMIN", "meralco": "2063286767", "maynilad": ""},
+      {"renter": "Vincent ( B 5 )", "meralco": "383105045", "maynilad": ""},
+      {"renter": "Bhebhe (0019 SERVI1)", "meralco": "383107361", "maynilad": ""},
+      {"renter": "Thess/2nd flr ( Ely Sabino 17 @ G )", "meralco": "383107519", "maynilad": "57692192"},
+      {"renter": "ThessArchie ( Warehouse )", "meralco": "", "maynilad": "67117740"},
+      {"renter": "Archie (1st & 3rd floor)", "meralco": "", "maynilad": "57962907"},
+      {"renter": "Flor S", "meralco": "", "maynilad": "67117900"}
+    ];
 
     // DOM Elements
-    const fileInput = document.getElementById('csvFileInput');
-    const fileStatus = document.getElementById('fileStatus');
     const meralcoInput = document.getElementById('meralcoInput');
     const mayniladInput = document.getElementById('mayniladInput');
     const resultCard = document.getElementById('resultCard');
     const resultName = document.getElementById('resultName');
-    const resultUnit = document.getElementById('resultUnit');
     const resultMeralco = document.getElementById('resultMeralco');
     const resultMaynilad = document.getElementById('resultMaynilad');
-    const tableHeader = document.getElementById('tableHeader');
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
-    // Load and parse CSV
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          apartmentData = results.data;
-          headers = results.meta.fields || [];
-          
-          fileStatus.textContent = `${file.name} loaded successfully`;
-          fileStatus.className = "text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full whitespace-nowrap";
-          
-          meralcoInput.disabled = false;
-          mayniladInput.disabled = false;
-          recordCount.textContent = `${apartmentData.length} records`;
-
-          renderTable(apartmentData);
-        }
-      });
-    });
-
-    // Clean text for flexible search matching
+    // Clean strings for search matching
     function cleanVal(str) {
       return (str || '').toString().toLowerCase().replace(/[\s-]/g, '');
-    }
-
-    // Dynamic key identification for flexible CSV column naming
-    function findKey(row, keywords) {
-      const rowKeys = Object.keys(row);
-      for (let kw of keywords) {
-        const found = rowKeys.find(k => k.toLowerCase().includes(kw));
-        if (found) return row[found];
-      }
-      return '';
     }
 
     // Lookup handler
@@ -161,8 +163,8 @@ Index.html
 
       // Search matching row
       const match = apartmentData.find(row => {
-        const rowMeralco = cleanVal(findKey(row, ['meralco', 'electric']));
-        const rowMaynilad = cleanVal(findKey(row, ['maynilad', 'water']));
+        const rowMeralco = cleanVal(row.meralco);
+        const rowMaynilad = cleanVal(row.maynilad);
         
         if (sourceField === 'meralco') return rowMeralco.includes(searchVal);
         if (sourceField === 'maynilad') return rowMaynilad.includes(searchVal);
@@ -170,18 +172,11 @@ Index.html
       });
 
       if (match) {
-        const name = findKey(match, ['renter', 'tenant', 'name']) || 'Unknown Renter';
-        const unit = findKey(match, ['unit', 'room', 'apt', 'apartment']) || 'Unit --';
-        const meralcoNum = findKey(match, ['meralco', 'electric']) || 'N/A';
-        const mayniladNum = findKey(match, ['maynilad', 'water']) || 'N/A';
-
-        resultName.textContent = name;
-        resultUnit.textContent = `Apartment / Unit: ${unit}`;
-        resultMeralco.textContent = meralcoNum;
-        resultMaynilad.textContent = mayniladNum;
+        resultName.textContent = match.renter || 'Unknown Renter';
+        resultMeralco.textContent = match.meralco || 'N/A';
+        resultMaynilad.textContent = match.maynilad || 'N/A';
         resultCard.classList.remove('hidden');
 
-        // Filter table to matched row
         renderTable([match]);
       } else {
         resultCard.classList.add('hidden');
@@ -189,28 +184,29 @@ Index.html
       }
     }
 
-    // Event listeners for auto-typing lookup
     meralcoInput.addEventListener('input', () => performLookup('meralco'));
     mayniladInput.addEventListener('input', () => performLookup('maynilad'));
 
     // Render Data Table
     function renderTable(data) {
-      if (!headers.length) return;
+      recordCount.textContent = `${data.length} records`;
 
-      // Render Headers
-      tableHeader.innerHTML = headers.map(h => `<th class="p-3">${h}</th>`).join('');
-
-      // Render Rows
       if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="${headers.length}" class="p-4 text-center text-slate-400">No matching records found</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">No matching records found</td></tr>`;
         return;
       }
 
-      tableBody.innerHTML = data.map(row => {
-        const cells = headers.map(h => `<td class="p-3 whitespace-nowrap">${row[h] || ''}</td>`).join('');
-        return `<tr class="hover:bg-slate-50 border-b border-slate-100">${cells}</tr>`;
-      }).join('');
+      tableBody.innerHTML = data.map(row => `
+        <tr class="hover:bg-slate-50 border-b border-slate-100">
+          <td class="p-3 font-medium text-slate-900">${row.renter || '-'}</td>
+          <td class="p-3">${row.meralco || '-'}</td>
+          <td class="p-3">${row.maynilad || '-'}</td>
+        </tr>
+      `).join('');
     }
+
+    // Initialize table on load
+    renderTable(apartmentData);
   </script>
 </body>
 </html>
