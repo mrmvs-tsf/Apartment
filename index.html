@@ -11,26 +11,10 @@
 
   <div class="max-w-4xl mx-auto space-y-6">
     
-        <!-- Header with Embedded Logo -->
+            <!-- Header with Logo -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
-      <div class="flex items-center gap-3">
-        <!-- TSF Monogram Icon -->
-        <div class="bg-blue-900 text-white font-black text-xl px-3 py-2 rounded-lg tracking-tighter border-2 border-blue-900 shadow-sm">
-          TSF
-        </div>
-        <!-- Title Text -->
-        <div class="text-left">
-          <h1 class="text-xl md:text-2xl font-black text-blue-900 tracking-wider leading-none uppercase">
-            THESS SABINO-FRANCISCO
-          </h1>
-          <p class="text-xs md:text-sm font-bold text-blue-800 tracking-[0.25em] uppercase mt-1">
-            APARTMENTS
-          </p>
-        </div>
-      </div>
-      <p class="text-[11px] font-bold text-slate-400 mt-3 tracking-widest uppercase">
-        Meralco & Maynilad Lookup System
-      </p>
+      <img src="logo.png" alt="Thess Sabino-Francisco Apartments" class="h-16 md:h-20 object-contain max-w-full">
+      <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Meralco & Maynilad Lookup System</p>
     </header>
 
     <!-- Search Section -->
@@ -96,8 +80,9 @@
     // ------------------------------------------------------------------
     // REPLACE THESE TWO VALUES WITH YOUR GOOGLE SHEET DETAILS:
     // ------------------------------------------------------------------
-    const SPREADSHEET_ID = https://docs.google.com/spreadsheets/d/1-0bztnmfWj_m99WlY4ScWQn1ltLmz3Frw1pPggI3Hqw/edit?usp=drivesdk;
-    const SHEET_NAME = Sheet1 ; 
+    const SPREADSHEET_ID = '1-0bztnmfWj_m99W1Y4ScWQn1ltLmz3Frw1pPggI3Hqw';
+    const SHEET_NAME = 'Sheet1';
+
     // ------------------------------------------------------------------
 
     let apartmentData = [];
