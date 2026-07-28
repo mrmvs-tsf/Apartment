@@ -11,10 +11,24 @@
 
   <div class="max-w-4xl mx-auto space-y-6">
     
-        <!-- Header with Logo -->
+    <!-- Header with TSF Branding -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
-      <img src="logo.png" alt="Thess Sabino-Francisco Apartments" class="h-16 md:h-20 object-contain max-w-full">
-      <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Utility & Renter Lookup System</p>
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-900 text-white font-black text-xl px-3 py-2 rounded-lg tracking-tighter border-2 border-blue-900 shadow-sm">
+          TSF
+        </div>
+        <div class="text-left">
+          <h1 class="text-xl md:text-2xl font-black text-blue-900 tracking-wider leading-none uppercase">
+            THESS SABINO-FRANCISCO
+          </h1>
+          <p class="text-xs md:text-sm font-bold text-blue-800 tracking-[0.25em] uppercase mt-1">
+            APARTMENTS
+          </p>
+        </div>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 mt-3 tracking-widest uppercase">
+        Utility & Renter Lookup System
+      </p>
     </header>
 
     <!-- Search Section -->
@@ -56,7 +70,7 @@
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-semibold text-slate-800">All Apartment Records</h2>
-        <span id="recordCount" class="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">0 records</span>
+        <span id="recordCount" class="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Loading...</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
@@ -68,6 +82,7 @@
             </tr>
           </thead>
           <tbody id="tableBody" class="divide-y divide-slate-200">
+            <tr><td colspan="3" class="p-4 text-center text-slate-400">Connecting to Google Sheet...</td></tr>
           </tbody>
         </table>
       </div>
@@ -76,59 +91,14 @@
   </div>
 
   <script>
-    // Embedded Data directly extracted from your Apartment.csv file
-    const apartmentData = [
-      {"renter": "Neneng Biyuda", "meralco": "383103301", "maynilad": "59441977"},
-      {"renter": "Danny", "meralco": "383103551", "maynilad": ""},
-      {"renter": "Rollie Bollus", "meralco": "602983126", "maynilad": "67442005"},
-      {"renter": "Annie Francisco", "meralco": "383104053", "maynilad": ""},
-      {"renter": "Nida Manatad", "meralco": "403420575", "maynilad": ""},
-      {"renter": "Racquel", "meralco": "383104394", "maynilad": ""},
-      {"renter": "Rose Lagumbayan", "meralco": "383104964", "maynilad": ""},
-      {"renter": "Uncle Diding", "meralco": "383103631", "maynilad": "59441959"},
-      {"renter": "Angelita Panes", "meralco": "383104133", "maynilad": ""},
-      {"renter": "Delia Damason", "meralco": "383104703", "maynilad": ""},
-      {"renter": "Susan Lagumbayan", "meralco": "383104884", "maynilad": ""},
-      {"renter": "Rowena datahan", "meralco": "383105386", "maynilad": ""},
-      {"renter": "Michael Marquez", "meralco": "3831055355", "maynilad": ""},
-      {"renter": "Annaliza Buentozin", "meralco": "383105796", "maynilad": ""},
-      {"renter": "Randy", "meralco": "383106378", "maynilad": ""},
-      {"renter": "Beth", "meralco": "383106868", "maynilad": ""},
-      {"renter": "Danny Espayos", "meralco": "383107441", "maynilad": "67442112"},
-      {"renter": "Melody", "meralco": "", "maynilad": ""},
-      {"renter": "Buddy Espayos", "meralco": "", "maynilad": ""},
-      {"renter": "Bunny Cayatano", "meralco": "383106948", "maynilad": "67442185"},
-      {"renter": "Aniceta Manatad", "meralco": "383106458", "maynilad": ""},
-      {"renter": "Tikay Cabe", "meralco": "383106527", "maynilad": "66722044"},
-      {"renter": "Tata / Jorell", "meralco": "", "maynilad": ""},
-      {"renter": "0092 A - Eddie", "meralco": "2103739572", "maynilad": "64852782"},
-      {"renter": "0092 B - Mang Lanie", "meralco": "1795651062", "maynilad": "64852773"},
-      {"renter": "0092 C - Balie", "meralco": "1907494184", "maynilad": "66722035"},
-      {"renter": "0092 D - Rey", "meralco": "1907544952", "maynilad": ""},
-      {"renter": "0092 E - Richie", "meralco": "1907545944", "maynilad": "66722053"},
-      {"renter": "0092 F - Nerlyn", "meralco": "1948883767", "maynilad": "67117839"},
-      {"renter": "0092 G - Loraine", "meralco": "1948885115", "maynilad": "67117875"},
-      {"renter": "0092 H - Honey", "meralco": "1948886368", "maynilad": "67117777"},
-      {"renter": "0092 I - Mary Grace Gonzaga", "meralco": "1948887646", "maynilad": "67117795"},
-      {"renter": "0092 J - Tisay", "meralco": "1948888899", "maynilad": "67117704"},
-      {"renter": "Unit 1 - Gina naig", "meralco": "2063282172", "maynilad": "68180269"},
-      {"renter": "Unit 2 - Reign", "meralco": "2063281189", "maynilad": "68180214"},
-      {"renter": "Unit 3 - Nay Eden", "meralco": "2063281555", "maynilad": "68180223"},
-      {"renter": "Unit 4 - Nay Elizabeth", "meralco": "2063275953", "maynilad": "68180278"},
-      {"renter": "Unit 5 - Delia Amigable", "meralco": "2063281715", "maynilad": "68180241"},
-      {"renter": "Unit 6 - Michael", "meralco": "2063282888", "maynilad": "68180330"},
-      {"renter": "Unit 7 - Elna", "meralco": "2063283164", "maynilad": "68180321"},
-      {"renter": "Unit 8 - Nimfa / Roda", "meralco": "2063283951", "maynilad": "68180303"},
-      {"renter": "Unit 9 - Rosario Odad", "meralco": "2063285068", "maynilad": "68180296"},
-      {"renter": "Unit 10 - Rommel Amador", "meralco": "2063285514", "maynilad": "68180287"},
-      {"renter": "ADMIN", "meralco": "2063286767", "maynilad": ""},
-      {"renter": "Vincent ( B 5 )", "meralco": "383105045", "maynilad": ""},
-      {"renter": "Bhebhe (0019 SERVI1)", "meralco": "383107361", "maynilad": ""},
-      {"renter": "Thess/2nd flr ( Ely Sabino 17 @ G )", "meralco": "383107519", "maynilad": "57692192"},
-      {"renter": "ThessArchie ( Warehouse )", "meralco": "", "maynilad": "67117740"},
-      {"renter": "Archie (1st & 3rd floor)", "meralco": "", "maynilad": "57962907"},
-      {"renter": "Flor S", "meralco": "", "maynilad": "67117900"}
-    ];
+    // ------------------------------------------------------------------
+    // REPLACE THESE TWO VALUES WITH YOUR GOOGLE SHEET DETAILS:
+    // ------------------------------------------------------------------
+    const SPREADSHEET_ID = https://docs.google.com/spreadsheets/d/1-0bztnmfWj_m99WlY4ScWQn1ltLmz3Frw1pPggI3Hqw/edit?usp=drivesdk;
+    const SHEET_NAME = Sheet1 ; 
+    // ------------------------------------------------------------------
+
+    let apartmentData = [];
 
     // DOM Elements
     const meralcoInput = document.getElementById('meralcoInput');
@@ -140,12 +110,41 @@
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
+    // Fetch Live Data from Google Sheets
+    async function loadGoogleSheetData() {
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+      try {
+        const response = await fetch(gvizUrl);
+        const text = await response.text();
+        
+        // Parse Google's JSON payload
+        const jsonString = text.substring(47, text.length - 2);
+        const json = JSON.parse(jsonString);
+
+        const rows = json.table.rows;
+        apartmentData = rows.map(r => {
+          const c = r.c;
+          return {
+            renter: c[0] ? (c[0].v || '').toString().trim() : '',
+            meralco: c[1] ? (c[1].v || '').toString().trim() : '',
+            maynilad: c[2] ? (c[2].v || '').toString().trim() : ''
+          };
+        }).filter(item => item.renter || item.meralco || item.maynilad);
+
+        renderTable(apartmentData);
+      } catch (err) {
+        console.error('Failed to load Google Sheet:', err);
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to load Google Sheet. Please verify Spreadsheet ID and sharing settings.</td></tr>`;
+      }
+    }
+
     // Clean strings for search matching
     function cleanVal(str) {
       return (str || '').toString().toLowerCase().replace(/[\s-]/g, '');
     }
 
-    // Lookup handler
+    // Search Lookup Handler
     function performLookup(sourceField) {
       const mVal = cleanVal(meralcoInput.value);
       const myVal = cleanVal(mayniladInput.value);
@@ -161,7 +160,6 @@
         return;
       }
 
-      // Search matching row
       const match = apartmentData.find(row => {
         const rowMeralco = cleanVal(row.meralco);
         const rowMaynilad = cleanVal(row.maynilad);
@@ -205,8 +203,8 @@
       `).join('');
     }
 
-    // Initialize table on load
-    renderTable(apartmentData);
+    // Initialize on page load
+    loadGoogleSheetData();
   </script>
 </body>
 </html>
