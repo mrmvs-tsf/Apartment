@@ -15,6 +15,8 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QuaggaJS Barcode Scanner Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
 
@@ -26,11 +28,19 @@
       <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Meralco & Maynilad Lookup System</p>
     </header>
 
+    <!-- Barcode Scanner Viewfinder -->
+    <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <h2 class="text-lg font-semibold mb-4 text-slate-800">Barcode Scanner</h2>
+      <div id="interactive" class="viewport overflow-hidden rounded-lg border border-slate-300 relative" style="width: 100%; height: 240px; background: #000;">
+        <!-- Quagga will inject video and canvas elements here -->
+      </div>
+    </section>
+
     <!-- Search Section -->
     <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-lg font-semibold mb-4 text-slate-800">Automated Search</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Renter Name / Unit Search -->
         <div>
           <label for="nameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Renter Name / Unit</label>
@@ -40,29 +50,15 @@
 
         <!-- Meralco Search -->
         <div>
-          <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Acct #</label>
-          <input type="text" id="meralcoInput" placeholder="Type Meralco Acct..." 
+          <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Account / Meter #</label>
+          <input type="text" id="meralcoInput" placeholder="Type Meralco #..." 
             class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
 
         <!-- Maynilad Search -->
         <div>
-          <label for="mayniladInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Acct #</label>
-          <input type="text" id="mayniladInput" placeholder="Type Maynilad Acct..." 
-            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
-        </div>
-
-        <!-- Maynilad Meter Search -->
-        <div>
-          <label for="mayniladMeterInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Meter #</label>
-          <input type="text" id="mayniladMeterInput" placeholder="Type Maynilad Meter..." 
-            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
-        </div>
-
-        <!-- Meralco Meter Search -->
-        <div>
-          <label for="meralcoMeterInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Meter #</label>
-          <input type="text" id="meralcoMeterInput" placeholder="Type Meralco Meter..." 
+          <label for="mayniladInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Account / Meter #</label>
+          <input type="text" id="mayniladInput" placeholder="Type Maynilad #..." 
             class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
       </div>
@@ -119,16 +115,12 @@
     const nameInput = document.getElementById('nameInput');
     const meralcoInput = document.getElementById('meralcoInput');
     const mayniladInput = document.getElementById('mayniladInput');
-    const mayniladMeterInput = document.getElementById('mayniladMeterInput');
-    const meralcoMeterInput = document.getElementById('meralcoMeterInput');
-
     const resultCard = document.getElementById('resultCard');
     const resultName = document.getElementById('resultName');
     const resultMeralco = document.getElementById('resultMeralco');
     const resultMaynilad = document.getElementById('resultMaynilad');
     const resultMayniladMeter = document.getElementById('resultMayniladMeter');
     const resultMeralcoMeter = document.getElementById('resultMeralcoMeter');
-    
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
@@ -138,7 +130,7 @@
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const data = await response.json();
         
-        // Skip header row (row 0) and map columns
+        // Skip header row (row 0) and map columns (0: Renter, 1: Meralco, 2: Maynilad, 3: Maynilad Meter, 4: Meralco Meter)
         apartmentData = data.slice(1).map(row => ({
           renter: (row[0] || '').toString().trim(),
           meralco: (row[1] || '').toString().trim(),
@@ -158,31 +150,20 @@
       return (str || '').toString().toLowerCase().replace(/[\s-]/g, '');
     }
 
-    function performLookup(sourceField) {
-      const nVal = cleanVal(nameInput.value);
-      const mVal = cleanVal(meralcoInput.value);
-      const myVal = cleanVal(mayniladInput.value);
-      const myMeterVal = cleanVal(mayniladMeterInput.value);
-      const mMeterVal = cleanVal(meralcoMeterInput.value);
+    function performLookup(sourceField, queryVal) {
+      const activeVal = cleanVal(queryVal);
 
       // Clear inactive search inputs when typing
       if (sourceField === 'name') {
-        meralcoInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
+        meralcoInput.value = '';
+        mayniladInput.value = '';
       } else if (sourceField === 'meralco') {
-        nameInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
+        nameInput.value = '';
+        mayniladInput.value = '';
       } else if (sourceField === 'maynilad') {
-        nameInput.value = ''; meralcoInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
-      } else if (sourceField === 'mayniladMeter') {
-        nameInput.value = ''; meralcoInput.value = ''; mayniladInput.value = ''; meralcoMeterInput.value = '';
-      } else if (sourceField === 'meralcoMeter') {
-        nameInput.value = ''; meralcoInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = '';
+        nameInput.value = '';
+        meralcoInput.value = '';
       }
-
-      const activeVal = sourceField === 'name' ? nVal 
-                      : sourceField === 'meralco' ? mVal 
-                      : sourceField === 'maynilad' ? myVal 
-                      : sourceField === 'mayniladMeter' ? myMeterVal 
-                      : mMeterVal;
 
       if (!activeVal) {
         resultCard.classList.add('hidden');
@@ -191,11 +172,15 @@
       }
 
       const matches = apartmentData.filter(row => {
-        if (sourceField === 'name') return cleanVal(row.renter).includes(activeVal);
-        if (sourceField === 'meralco') return cleanVal(row.meralco).includes(activeVal);
-        if (sourceField === 'maynilad') return cleanVal(row.maynilad).includes(activeVal);
-        if (sourceField === 'mayniladMeter') return cleanVal(row.mayniladMeter).includes(activeVal);
-        if (sourceField === 'meralcoMeter') return cleanVal(row.meralcoMeter).includes(activeVal);
+        const rowRenter = cleanVal(row.renter);
+        const rowMeralco = cleanVal(row.meralco);
+        const rowMaynilad = cleanVal(row.maynilad);
+        const rowMayniladMeter = cleanVal(row.mayniladMeter);
+        const rowMeralcoMeter = cleanVal(row.meralcoMeter);
+        
+        if (sourceField === 'name') return rowRenter.includes(activeVal);
+        if (sourceField === 'meralco') return rowMeralco.includes(activeVal) || rowMeralcoMeter.includes(activeVal);
+        if (sourceField === 'maynilad') return rowMaynilad.includes(activeVal) || rowMayniladMeter.includes(activeVal);
         return false;
       });
 
@@ -215,11 +200,9 @@
       }
     }
 
-    nameInput.addEventListener('input', () => performLookup('name'));
-    meralcoInput.addEventListener('input', () => performLookup('meralco'));
-    mayniladInput.addEventListener('input', () => performLookup('maynilad'));
-    mayniladMeterInput.addEventListener('input', () => performLookup('mayniladMeter'));
-    meralcoMeterInput.addEventListener('input', () => performLookup('meralcoMeter'));
+    nameInput.addEventListener('input', (e) => performLookup('name', e.target.value));
+    meralcoInput.addEventListener('input', (e) => performLookup('meralco', e.target.value));
+    mayniladInput.addEventListener('input', (e) => performLookup('maynilad', e.target.value));
 
     function renderTable(data) {
       recordCount.textContent = `${data.length} records`;
@@ -240,7 +223,41 @@
       `).join('');
     }
 
-    loadGoogleSheetData();
+    // Initialize QuaggaJS Barcode Scanner
+    function initScanner() {
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#interactive'),
+          constraints: {
+            facingMode: "environment" // Use rear camera on mobile devices
+          },
+        },
+        decoder: {
+          readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader"]
+        }
+      }, function(err) {
+        if (err) {
+          console.error("Failed to initialize scanner:", err);
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function(result) {
+        const code = result.codeResult.code;
+        if (code) {
+          // Automatically put scanned code into Meralco input as an example or search it
+          meralcoInput.value = code;
+          performLookup('meralco', code);
+        }
+      });
+    }
+
+    loadGoogleSheetData().then(() => {
+      initScanner();
+    });
   </script>
 </body>
 </html>
