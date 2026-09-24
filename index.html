@@ -30,7 +30,7 @@
     <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-lg font-semibold mb-4 text-slate-800">Automated Search</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- Renter Name / Unit Search -->
         <div>
           <label for="nameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Renter Name / Unit</label>
@@ -40,15 +40,29 @@
 
         <!-- Meralco Search -->
         <div>
-          <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Account / Meter #</label>
-          <input type="text" id="meralcoInput" placeholder="Type Meralco #..." 
+          <label for="meralcoInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Acct #</label>
+          <input type="text" id="meralcoInput" placeholder="Type Meralco Acct..." 
             class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
 
         <!-- Maynilad Search -->
         <div>
-          <label for="mayniladInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Account / Meter #</label>
-          <input type="text" id="mayniladInput" placeholder="Type Maynilad #..." 
+          <label for="mayniladInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Acct #</label>
+          <input type="text" id="mayniladInput" placeholder="Type Maynilad Acct..." 
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
+        </div>
+
+        <!-- Maynilad Meter Search -->
+        <div>
+          <label for="mayniladMeterInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Maynilad Meter #</label>
+          <input type="text" id="mayniladMeterInput" placeholder="Type Maynilad Meter..." 
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
+        </div>
+
+        <!-- Meralco Meter Search -->
+        <div>
+          <label for="meralcoMeterInput" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Meralco Meter #</label>
+          <input type="text" id="meralcoMeterInput" placeholder="Type Meralco Meter..." 
             class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900">
         </div>
       </div>
@@ -105,12 +119,16 @@
     const nameInput = document.getElementById('nameInput');
     const meralcoInput = document.getElementById('meralcoInput');
     const mayniladInput = document.getElementById('mayniladInput');
+    const mayniladMeterInput = document.getElementById('mayniladMeterInput');
+    const meralcoMeterInput = document.getElementById('meralcoMeterInput');
+
     const resultCard = document.getElementById('resultCard');
     const resultName = document.getElementById('resultName');
     const resultMeralco = document.getElementById('resultMeralco');
     const resultMaynilad = document.getElementById('resultMaynilad');
     const resultMayniladMeter = document.getElementById('resultMayniladMeter');
     const resultMeralcoMeter = document.getElementById('resultMeralcoMeter');
+    
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
@@ -120,7 +138,7 @@
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const data = await response.json();
         
-        // Skip header row (row 0) and map columns (0: Renter, 1: Meralco, 2: Maynilad, 3: Maynilad Meter, 4: Meralco Meter)
+        // Skip header row (row 0) and map columns
         apartmentData = data.slice(1).map(row => ({
           renter: (row[0] || '').toString().trim(),
           meralco: (row[1] || '').toString().trim(),
@@ -144,20 +162,27 @@
       const nVal = cleanVal(nameInput.value);
       const mVal = cleanVal(meralcoInput.value);
       const myVal = cleanVal(mayniladInput.value);
+      const myMeterVal = cleanVal(mayniladMeterInput.value);
+      const mMeterVal = cleanVal(meralcoMeterInput.value);
 
       // Clear inactive search inputs when typing
       if (sourceField === 'name') {
-        meralcoInput.value = '';
-        mayniladInput.value = '';
+        meralcoInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
       } else if (sourceField === 'meralco') {
-        nameInput.value = '';
-        mayniladInput.value = '';
+        nameInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
       } else if (sourceField === 'maynilad') {
-        nameInput.value = '';
-        meralcoInput.value = '';
+        nameInput.value = ''; meralcoInput.value = ''; mayniladMeterInput.value = ''; meralcoMeterInput.value = '';
+      } else if (sourceField === 'mayniladMeter') {
+        nameInput.value = ''; meralcoInput.value = ''; mayniladInput.value = ''; meralcoMeterInput.value = '';
+      } else if (sourceField === 'meralcoMeter') {
+        nameInput.value = ''; meralcoInput.value = ''; mayniladInput.value = ''; mayniladMeterInput.value = '';
       }
 
-      const activeVal = sourceField === 'name' ? nVal : (sourceField === 'meralco' ? mVal : myVal);
+      const activeVal = sourceField === 'name' ? nVal 
+                      : sourceField === 'meralco' ? mVal 
+                      : sourceField === 'maynilad' ? myVal 
+                      : sourceField === 'mayniladMeter' ? myMeterVal 
+                      : mMeterVal;
 
       if (!activeVal) {
         resultCard.classList.add('hidden');
@@ -166,13 +191,11 @@
       }
 
       const matches = apartmentData.filter(row => {
-        const rowRenter = cleanVal(row.renter);
-        const rowMeralco = cleanVal(row.meralco);
-        const rowMaynilad = cleanVal(row.maynilad);
-        
-        if (sourceField === 'name') return rowRenter.includes(activeVal);
-        if (sourceField === 'meralco') return rowMeralco.includes(activeVal);
-        if (sourceField === 'maynilad') return rowMaynilad.includes(activeVal);
+        if (sourceField === 'name') return cleanVal(row.renter).includes(activeVal);
+        if (sourceField === 'meralco') return cleanVal(row.meralco).includes(activeVal);
+        if (sourceField === 'maynilad') return cleanVal(row.maynilad).includes(activeVal);
+        if (sourceField === 'mayniladMeter') return cleanVal(row.mayniladMeter).includes(activeVal);
+        if (sourceField === 'meralcoMeter') return cleanVal(row.meralcoMeter).includes(activeVal);
         return false;
       });
 
@@ -195,6 +218,8 @@
     nameInput.addEventListener('input', () => performLookup('name'));
     meralcoInput.addEventListener('input', () => performLookup('meralco'));
     mayniladInput.addEventListener('input', () => performLookup('maynilad'));
+    mayniladMeterInput.addEventListener('input', () => performLookup('mayniladMeter'));
+    meralcoMeterInput.addEventListener('input', () => performLookup('meralcoMeter'));
 
     function renderTable(data) {
       recordCount.textContent = `${data.length} records`;
