@@ -61,9 +61,11 @@
         <div>
           <h3 id="resultName" class="text-2xl font-extrabold">--</h3>
         </div>
-        <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-lg text-xs space-y-1 border border-white/20">
+        <div class="bg-white/15 backdrop-blur-md px-4 py-3 rounded-lg text-xs grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 border border-white/20">
           <p><strong>Meralco #:</strong> <span id="resultMeralco">--</span></p>
           <p><strong>Maynilad #:</strong> <span id="resultMaynilad">--</span></p>
+          <p><strong>Maynilad Meter:</strong> <span id="resultMayniladMeter">--</span></p>
+          <p><strong>Meralco Meter:</strong> <span id="resultMeralcoMeter">--</span></p>
         </div>
       </div>
     </section>
@@ -107,6 +109,8 @@
     const resultName = document.getElementById('resultName');
     const resultMeralco = document.getElementById('resultMeralco');
     const resultMaynilad = document.getElementById('resultMaynilad');
+    const resultMayniladMeter = document.getElementById('resultMayniladMeter');
+    const resultMeralcoMeter = document.getElementById('resultMeralcoMeter');
     const tableBody = document.getElementById('tableBody');
     const recordCount = document.getElementById('recordCount');
 
@@ -177,6 +181,8 @@
         resultName.textContent = match.renter || 'Unknown Renter';
         resultMeralco.textContent = match.meralco || 'N/A';
         resultMaynilad.textContent = match.maynilad || 'N/A';
+        resultMayniladMeter.textContent = match.mayniladMeter || 'N/A';
+        resultMeralcoMeter.textContent = match.meralcoMeter || 'N/A';
         resultCard.classList.remove('hidden');
 
         renderTable(matches);
