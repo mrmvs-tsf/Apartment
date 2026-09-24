@@ -18,7 +18,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
 
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-6">
     
     <!-- Header with Logo -->
     <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
@@ -81,10 +81,12 @@
               <th class="p-3">Renter / Unit</th>
               <th class="p-3">Meralco Number</th>
               <th class="p-3">Maynilad Number</th>
+              <th class="p-3">Maynilad Meter</th>
+              <th class="p-3">Meralco Meter</th>
             </tr>
           </thead>
           <tbody id="tableBody" class="divide-y divide-slate-200">
-            <tr><td colspan="3" class="p-4 text-center text-slate-400">Connecting to Google Sheet...</td></tr>
+            <tr><td colspan="5" class="p-4 text-center text-slate-400">Connecting to Google Sheet...</td></tr>
           </tbody>
         </table>
       </div>
@@ -114,17 +116,19 @@
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const data = await response.json();
         
-        // Skip header row (row 0)
+        // Skip header row (row 0) and map columns (0: Renter, 1: Meralco, 2: Maynilad, 3: Maynilad Meter, 4: Meralco Meter)
         apartmentData = data.slice(1).map(row => ({
           renter: (row[0] || '').toString().trim(),
           meralco: (row[1] || '').toString().trim(),
-          maynilad: (row[2] || '').toString().trim()
-        })).filter(item => item.renter || item.meralco || item.maynilad);
+          maynilad: (row[2] || '').toString().trim(),
+          mayniladMeter: (row[3] || '').toString().trim(),
+          meralcoMeter: (row[4] || '').toString().trim()
+        })).filter(item => item.renter || item.meralco || item.maynilad || item.mayniladMeter || item.meralcoMeter);
 
         renderTable(apartmentData);
       } catch (err) {
         console.error('Failed to load Google Sheet:', err);
-        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-medium">Failed to connect to Google Sheet API.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-medium">Failed to connect to Google Sheet API.</td></tr>`;
       }
     }
 
@@ -190,7 +194,7 @@
       recordCount.textContent = `${data.length} records`;
 
       if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">No matching records found</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No matching records found</td></tr>`;
         return;
       }
 
@@ -199,6 +203,8 @@
           <td class="p-3 font-medium text-slate-900">${row.renter || '-'}</td>
           <td class="p-3">${row.meralco || '-'}</td>
           <td class="p-3">${row.maynilad || '-'}</td>
+          <td class="p-3">${row.mayniladMeter || '-'}</td>
+          <td class="p-3">${row.meralcoMeter || '-'}</td>
         </tr>
       `).join('');
     }
