@@ -15,8 +15,6 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- QuaggaJS Barcode Scanner Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
 
@@ -27,14 +25,6 @@
       <img src="logo.png" alt="Thess Sabino-Francisco Apartments" class="h-16 md:h-20 object-contain max-w-full">
       <p class="text-xs md:text-sm font-medium text-slate-500 mt-2 tracking-wide uppercase">Meralco & Maynilad Lookup System</p>
     </header>
-
-    <!-- Barcode Scanner Viewfinder -->
-    <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <h2 class="text-lg font-semibold mb-4 text-slate-800">Barcode Scanner</h2>
-      <div id="interactive" class="viewport overflow-hidden rounded-lg border border-slate-300 relative" style="width: 100%; height: 240px; background: #000;">
-        <!-- Quagga will inject video and canvas elements here -->
-      </div>
-    </section>
 
     <!-- Search Section -->
     <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -150,8 +140,10 @@
       return (str || '').toString().toLowerCase().replace(/[\s-]/g, '');
     }
 
-    function performLookup(sourceField, queryVal) {
-      const activeVal = cleanVal(queryVal);
+    function performLookup(sourceField) {
+      const nVal = cleanVal(nameInput.value);
+      const mVal = cleanVal(meralcoInput.value);
+      const myVal = cleanVal(mayniladInput.value);
 
       // Clear inactive search inputs when typing
       if (sourceField === 'name') {
@@ -165,6 +157,8 @@
         meralcoInput.value = '';
       }
 
+      const activeVal = sourceField === 'name' ? nVal : (sourceField === 'meralco' ? mVal : myVal);
+
       if (!activeVal) {
         resultCard.classList.add('hidden');
         renderTable(apartmentData);
@@ -175,12 +169,10 @@
         const rowRenter = cleanVal(row.renter);
         const rowMeralco = cleanVal(row.meralco);
         const rowMaynilad = cleanVal(row.maynilad);
-        const rowMayniladMeter = cleanVal(row.mayniladMeter);
-        const rowMeralcoMeter = cleanVal(row.meralcoMeter);
         
         if (sourceField === 'name') return rowRenter.includes(activeVal);
-        if (sourceField === 'meralco') return rowMeralco.includes(activeVal) || rowMeralcoMeter.includes(activeVal);
-        if (sourceField === 'maynilad') return rowMaynilad.includes(activeVal) || rowMayniladMeter.includes(activeVal);
+        if (sourceField === 'meralco') return rowMeralco.includes(activeVal);
+        if (sourceField === 'maynilad') return rowMaynilad.includes(activeVal);
         return false;
       });
 
@@ -200,9 +192,9 @@
       }
     }
 
-    nameInput.addEventListener('input', (e) => performLookup('name', e.target.value));
-    meralcoInput.addEventListener('input', (e) => performLookup('meralco', e.target.value));
-    mayniladInput.addEventListener('input', (e) => performLookup('maynilad', e.target.value));
+    nameInput.addEventListener('input', () => performLookup('name'));
+    meralcoInput.addEventListener('input', () => performLookup('meralco'));
+    mayniladInput.addEventListener('input', () => performLookup('maynilad'));
 
     function renderTable(data) {
       recordCount.textContent = `${data.length} records`;
@@ -223,41 +215,7 @@
       `).join('');
     }
 
-    // Initialize QuaggaJS Barcode Scanner
-    function initScanner() {
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#interactive'),
-          constraints: {
-            facingMode: "environment" // Use rear camera on mobile devices
-          },
-        },
-        decoder: {
-          readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader"]
-        }
-      }, function(err) {
-        if (err) {
-          console.error("Failed to initialize scanner:", err);
-          return;
-        }
-        Quagga.start();
-      });
-
-      Quagga.onDetected(function(result) {
-        const code = result.codeResult.code;
-        if (code) {
-          // Automatically put scanned code into Meralco input as an example or search it
-          meralcoInput.value = code;
-          performLookup('meralco', code);
-        }
-      });
-    }
-
-    loadGoogleSheetData().then(() => {
-      initScanner();
-    });
+    loadGoogleSheetData();
   </script>
 </body>
 </html>
